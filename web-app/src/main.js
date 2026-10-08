@@ -284,12 +284,7 @@ async function search(city) {
 
     if (!payload) {
       payload = await fetchOpenMeteoWeather(trimmed);
-      setMessage(
-        backendError
-          ? 'Weather data loaded directly from Open-Meteo.'
-          : 'Weather data loaded.',
-        'success'
-      );
+      setMessage('Weather data loaded.', 'success');
     } else {
       setMessage('Weather data loaded.', 'success');
     }
