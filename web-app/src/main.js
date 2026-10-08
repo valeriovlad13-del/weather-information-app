@@ -168,19 +168,83 @@ function conditionFor(code) {
   }
 }
 
-function iconFor(code) {
+function weatherSvg(kind, extraClass = '') {
+  const className = `weather-icon ${extraClass}`.trim();
+  const common = `class="${className}" viewBox="0 0 96 96" aria-hidden="true" focusable="false"`;
+
+  const sun = `
+    <circle cx="32" cy="32" r="13" fill="none" stroke="currentColor" stroke-width="4"/>
+    <g stroke="currentColor" stroke-width="4" stroke-linecap="round">
+      <path d="M32 7v9"/><path d="M32 48v9"/><path d="M7 32h9"/><path d="M48 32h9"/>
+      <path d="m14.3 14.3 6.4 6.4"/><path d="m43.3 43.3 6.4 6.4"/>
+      <path d="m49.7 14.3-6.4 6.4"/><path d="m20.7 43.3-6.4 6.4"/>
+    </g>`;
+
+  const cloud = `
+    <path d="M23 66h48a15 15 0 0 0 0-30 22 22 0 0 0-42-4A17 17 0 0 0 23 66Z"
+      fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+  `;
+
+  const rain = `
+    <g stroke="currentColor" stroke-width="4" stroke-linecap="round">
+      <path d="m30 74-5 10"/><path d="m48 74-5 10"/><path d="m66 74-5 10"/>
+    </g>
+  `;
+
+  const snow = `
+    <g stroke="currentColor" stroke-width="3.2" stroke-linecap="round">
+      <path d="M30 74v14"/><path d="m24 77 12 8"/><path d="m36 77-12 8"/>
+      <path d="M48 74v14"/><path d="m42 77 12 8"/><path d="m54 77-12 8"/>
+      <path d="M66 74v14"/><path d="m60 77 12 8"/><path d="m72 77-12 8"/>
+    </g>
+  `;
+
+  const fog = `
+    <g stroke="currentColor" stroke-width="4" stroke-linecap="round">
+      <path d="M20 70h56"/><path d="M28 80h40"/>
+    </g>
+  `;
+
+  const bolt = `
+    <path d="m52 69-10 16h11l-5 11 18-22H55l7-11Z"
+      fill="currentColor"/>
+  `;
+
+  switch (kind) {
+    case 'clear':
+      return `<svg ${common}>${sun}</svg>`;
+    case 'partly':
+      return `<svg ${common}>${sun}<g transform="translate(14 17) scale(.78)">${cloud}</g></svg>`;
+    case 'cloudy':
+      return `<svg ${common}>${cloud}</svg>`;
+    case 'fog':
+      return `<svg ${common}>${cloud}${fog}</svg>`;
+    case 'drizzle':
+      return `<svg ${common}>${cloud}${rain.replaceAll('4', '3')}</svg>`;
+    case 'rain':
+      return `<svg ${common}>${cloud}${rain}</svg>`;
+    case 'snow':
+      return `<svg ${common}>${cloud}${snow}</svg>`;
+    case 'storm':
+      return `<svg ${common}>${cloud}${bolt}${rain}</svg>`;
+    default:
+      return `<svg ${common}>${sun}${cloud}</svg>`;
+  }
+}
+
+function iconFor(code, size = '') {
   switch (code) {
-    case 0: return '☀️';
+    case 0: return weatherSvg('clear', size);
     case 1:
-    case 2: return '⛅';
-    case 3: return '☁️';
+    case 2: return weatherSvg('partly', size);
+    case 3: return weatherSvg('cloudy', size);
     case 45:
-    case 48: return '🌫️';
+    case 48: return weatherSvg('fog', size);
     case 51:
     case 53:
     case 55:
     case 56:
-    case 57: return '🌦️';
+    case 57: return weatherSvg('drizzle', size);
     case 61:
     case 63:
     case 65:
@@ -188,17 +252,17 @@ function iconFor(code) {
     case 67:
     case 80:
     case 81:
-    case 82: return '🌧️';
+    case 82: return weatherSvg('rain', size);
     case 71:
     case 73:
     case 75:
     case 77:
     case 85:
-    case 86: return '❄️';
+    case 86: return weatherSvg('snow', size);
     case 95:
     case 96:
-    case 99: return '⛈️';
-    default: return '🌤️';
+    case 99: return weatherSvg('storm', size);
+    default: return weatherSvg('partly', size);
   }
 }
 
@@ -291,7 +355,7 @@ function render(data) {
   $('locationName').textContent = location.name;
   $('locationMeta').textContent = [location.admin1, location.country].filter(Boolean).join(', ');
   $('updatedAt').textContent = `Updated ${new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(new Date())}`;
-  $('currentIcon').textContent = current.icon;
+  $('currentIcon').innerHTML = current.icon;
   $('temperature').textContent = formatNumber(current.temperature);
   $('temperatureUnit').textContent = unitSymbol();
   $('condition').textContent = current.condition;
@@ -306,7 +370,7 @@ function render(data) {
   $('forecast').innerHTML = forecast.map((day, index) => `
     <article class="forecast-card ${index === 0 ? 'today' : ''}">
       <span>${index === 0 ? 'Today' : formatDate(day.date)}</span>
-      <strong>${day.icon}</strong>
+      <strong class="forecast-icon">${day.icon}</strong>
       <b>${formatNumber(day.maxTemperature)} / ${formatNumber(day.minTemperature)}${unitSymbol()}</b>
       <small>${day.precipitationProbability}% rain</small>
     </article>
