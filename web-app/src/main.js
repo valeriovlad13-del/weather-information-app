@@ -92,7 +92,7 @@ function render(data) {
     <article class="forecast-card ${index === 0 ? 'today' : ''}">
       <span>${index === 0 ? 'Today' : formatDate(day.date)}</span>
       <strong>${day.icon}</strong>
-      <b>${formatNumber(day.maxTemperature)}° / ${formatNumber(day.minTemperature)}°${unitSymbol()}</b>
+      <b>${formatNumber(day.maxTemperature)} / ${formatNumber(day.minTemperature)}${unitSymbol()}</b>
       <small>${day.precipitationProbability}% rain</small>
     </article>
   `).join('');
@@ -107,6 +107,7 @@ async function search(city) {
   setMessage('Loading weather data…', 'loading');
   $('weatherPanel').classList.add('loading');
   try {
+    if (!API_BASE_URL) throw new Error('Weather API is not configured. Set VITE_API_BASE_URL in the deployment environment.');
     const response = await fetch(`${API_BASE_URL}/api/weather?city=${encodeURIComponent(trimmed)}&unit=${state.unit}`);
     const payload = await response.json().catch(() => null);
     if (!response.ok) throw new Error(payload?.message || 'Unable to retrieve weather data.');
