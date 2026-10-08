@@ -3,34 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Weather Information App with current conditions, forecasts, unit conversion, and recent search history." />
-    <meta name="theme-color" content="#e1f2ff" />
+    <meta name="description" content="Weather information with current conditions, five-day forecast, unit conversion, and recent searches." />
+    <meta name="theme-color" content="#249be7" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <title>Weather Information App</title>
+    <title>Weather App</title>
   </head>
   <body>
     <div id="app">
       <main class="shell">
         <header class="topbar">
           <div class="brand">
-            <div class="brand-mark" aria-hidden="true">☀</div>
+            <div class="brand-mark" aria-hidden="true">☀️</div>
             <div>
-              <h1>Weather Information App</h1>
+              <h1>Weather App</h1>
               <p>Current weather and forecast information</p>
             </div>
           </div>
           <button id="unitToggle" class="unit-toggle" type="button" aria-label="Toggle temperature unit">°C</button>
         </header>
 
-        <section class="search-card">
-          <div class="search-heading">
-            <h2>Check the weather</h2>
-            <p>Enter a city to view the latest weather information.</p>
-          </div>
+        <section class="search-card" aria-label="Weather search">
           <form id="searchForm" class="search-form">
-            <label class="sr-only" for="cityInput">City</label>
-            <input id="cityInput" name="city" type="search" autocomplete="off" placeholder="Enter city name" required />
-            <button type="submit">Get Weather</button>
+            <label class="sr-only" for="cityInput">City or coordinates</label>
+            <input
+              id="cityInput"
+              name="city"
+              type="search"
+              autocomplete="off"
+              placeholder="Enter city name or coordinates (lat,lng)"
+              required
+            />
+            <button type="submit">Search</button>
           </form>
           <p id="message" class="message" role="status" aria-live="polite"></p>
         </section>
@@ -55,35 +58,35 @@
                 <p id="condition">Ready for a search</p>
                 <p id="feelsLike">Feels like --</p>
               </div>
-            </article>
 
-            <div class="metrics-grid">
-              <article class="metric">
-                <span>Humidity</span>
-                <strong id="humidity">--</strong>
-                <small>%</small>
-              </article>
-              <article class="metric">
-                <span>Wind Speed</span>
-                <strong id="wind">--</strong>
-                <small>km/h</small>
-              </article>
-              <article class="metric">
-                <span>Pressure</span>
-                <strong id="pressure">--</strong>
-                <small>hPa</small>
-              </article>
-              <article class="metric">
-                <span>Visibility</span>
-                <strong id="visibility">--</strong>
-                <small>km</small>
-              </article>
-            </div>
+              <div class="metrics-grid">
+                <article class="metric">
+                  <span>Humidity</span>
+                  <strong id="humidity">--</strong>
+                  <small>%</small>
+                </article>
+                <article class="metric">
+                  <span>Wind Speed</span>
+                  <strong id="wind">--</strong>
+                  <small>km/h</small>
+                </article>
+                <article class="metric">
+                  <span>Pressure</span>
+                  <strong id="pressure">--</strong>
+                  <small>hPa</small>
+                </article>
+                <article class="metric">
+                  <span>Visibility</span>
+                  <strong id="visibility">--</strong>
+                  <small>km</small>
+                </article>
+              </div>
+            </article>
           </div>
 
           <section class="forecast-section">
             <div class="section-heading">
-              <h3>Weather Forecast</h3>
+              <h3>5-Day Forecast</h3>
               <span id="timezone">—</span>
             </div>
             <div id="forecast" class="forecast-grid"></div>
@@ -91,8 +94,8 @@
 
           <section class="history-section">
             <div class="section-heading">
-              <h3>Search History</h3>
-              <button id="clearHistory" class="text-button" type="button">Clear</button>
+              <h3>Recent Searches</h3>
+              <button id="clearHistory" class="text-button" type="button">Clear History</button>
             </div>
             <div id="history" class="history-list"></div>
           </section>
