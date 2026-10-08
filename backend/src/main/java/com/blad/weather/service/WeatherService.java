@@ -2,23 +2,48 @@ package com.blad.weather.service;
 
 import com.blad.weather.model.WeatherResponse;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class WeatherService {
-    private final RestClient client = RestClient.builder().build();
+    private static final Logger log = LoggerFactory.getLogger(WeatherService.class);
+
+    private final RestClient client;
+
+    public WeatherService() {
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(Duration.ofSeconds(20));
+
+        this.client = RestClient.builder()
+                .requestFactory(requestFactory)
+                .build();
+    }
 
     public WeatherResponse getWeather(String city, String unit) {
         if (city == null || city.isBlank()) {
             throw new IllegalArgumentException("City is required.");
         }
+
         String normalizedUnit = "f".equalsIgnoreCase(unit) ? "fahrenheit" : "celsius";
-        JsonNode location = geocode(city.trim());
+        String trimmedCity = city.trim();
+
+        JsonNode location = geocode(trimmedCity);
         if (location == null) {
             throw new IllegalArgumentException("City not found.");
         }
@@ -29,17 +54,22 @@ public class WeatherService {
         String url = UriComponentsBuilder.fromUriString("https://api.open-meteo.com/v1/forecast")
                 .queryParam("latitude", latitude)
                 .queryParam("longitude", longitude)
-                .queryParam("current", "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,pressure_msl,wind_speed_10m,visibility,is_day")
-                .queryParam("daily", "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max")
+                .queryParam("current",
+                        "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation," +
+                        "weather_code,pressure_msl,wind_speed_10m,visibility,is_day")
+                .queryParam("daily",
+                        "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max")
                 .queryParam("temperature_unit", normalizedUnit)
                 .queryParam("wind_speed_unit", "kmh")
                 .queryParam("timezone", "auto")
                 .queryParam("forecast_days", 5)
+                .build()
                 .toUriString();
 
-        JsonNode root = client.get().uri(url).retrieve().body(JsonNode.class);
-        if (root == null || root.path("current").isMissingNode()) {
-            throw new IllegalStateException("Weather service returned an invalid response.");
+        JsonNode root = getJson(url, "forecast");
+        if (root == null || root.path("current").isMissingNode() || root.path("daily").isMissingNode()) {
+            log.error("Open-Meteo returned an incomplete forecast response for city={}", trimmedCity);
+            throw new IllegalStateException("Weather service returned an incomplete response.");
         }
 
         JsonNode current = root.path("current");
@@ -50,6 +80,7 @@ public class WeatherService {
         List<WeatherResponse.DailyForecast> forecast = new ArrayList<>();
         JsonNode daily = root.path("daily");
         JsonNode dates = daily.path("time");
+
         for (int i = 0; i < dates.size(); i++) {
             int code = daily.path("weather_code").path(i).asInt();
             forecast.add(new WeatherResponse.DailyForecast(
@@ -63,7 +94,8 @@ public class WeatherService {
             ));
         }
 
-        String displayName = location.path("name").asText(city.trim());
+        String displayName = location.path("name").asText(trimmedCity);
+
         return new WeatherResponse(
                 new WeatherResponse.Location(
                         displayName,
@@ -97,10 +129,52 @@ public class WeatherService {
                 .queryParam("count", 1)
                 .queryParam("language", "en")
                 .queryParam("format", "json")
+                .build()
                 .toUriString();
-        JsonNode root = client.get().uri(url).retrieve().body(JsonNode.class);
+
+        JsonNode root = getJson(url, "geocoding");
         JsonNode results = root == null ? null : root.path("results");
-        return results != null && results.isArray() && !results.isEmpty() ? results.get(0) : null;
+
+        return results != null && results.isArray() && !results.isEmpty()
+                ? results.get(0)
+                : null;
+    }
+
+    private JsonNode getJson(String url, String operation) {
+        try {
+            log.info("Requesting Open-Meteo {} endpoint", operation);
+
+            JsonNode response = client.get()
+                    .uri(url)
+                    .header("Accept", "application/json")
+                    .retrieve()
+                    .body(JsonNode.class);
+
+            if (response == null) {
+                log.error("Open-Meteo {} endpoint returned an empty response", operation);
+                throw new IllegalStateException("Weather service returned an empty response.");
+            }
+
+            if (response.path("error").asBoolean(false)) {
+                String reason = response.path("reason").asText("Unknown Open-Meteo error");
+                log.error("Open-Meteo {} endpoint returned an API error: {}", operation, reason);
+                throw new IllegalStateException("Open-Meteo error: " + reason);
+            }
+
+            return response;
+        } catch (RestClientResponseException ex) {
+            log.error(
+                    "Open-Meteo {} request failed: HTTP {} response={}",
+                    operation,
+                    ex.getStatusCode().value(),
+                    ex.getResponseBodyAsString(),
+                    ex
+            );
+            throw new IllegalStateException("Unable to retrieve weather data from Open-Meteo.", ex);
+        } catch (RestClientException ex) {
+            log.error("Open-Meteo {} request failed: {}", operation, ex.getMessage(), ex);
+            throw new IllegalStateException("Unable to connect to Open-Meteo.", ex);
+        }
     }
 
     public static String conditionFor(int code) {
