@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Weather Information App — a full-stack recreation of a UoPeople CS 1103 Programming 2 activity." />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="description" content="Weather Information App with current conditions, forecasts, unit conversion, and recent search history." />
+    <meta name="theme-color" content="#e1f2ff" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>Weather Information App</title>
   </head>
@@ -13,29 +13,24 @@
       <main class="shell">
         <header class="topbar">
           <div class="brand">
-            <div class="brand-mark" aria-hidden="true">☼</div>
+            <div class="brand-mark" aria-hidden="true">☀</div>
             <div>
-              <p class="eyebrow">CS 1103 · Programming 2</p>
               <h1>Weather Information App</h1>
+              <p>Current weather and forecast information</p>
             </div>
           </div>
-          <div class="controls">
-            <button id="unitToggle" class="unit-toggle" type="button" aria-label="Toggle temperature unit">°C</button>
-            <a class="github-link" href="https://github.com/valeriovlad13-del/weather-information-app" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
-          </div>
+          <button id="unitToggle" class="unit-toggle" type="button" aria-label="Toggle temperature unit">°C</button>
         </header>
 
-        <section class="hero-card">
-          <div class="hero-copy">
-            <span class="status-dot"></span>
-            <span>Live weather information</span>
-            <h2>Check the weather anywhere.</h2>
-            <p>Search for a city to view current conditions, forecast, and recent searches.</p>
+        <section class="search-card">
+          <div class="search-heading">
+            <h2>Check the weather</h2>
+            <p>Enter a city to view the latest weather information.</p>
           </div>
           <form id="searchForm" class="search-form">
             <label class="sr-only" for="cityInput">City</label>
-            <input id="cityInput" name="city" type="search" autocomplete="off" placeholder="Enter a city, e.g. Manila" required />
-            <button type="submit">Search</button>
+            <input id="cityInput" name="city" type="search" autocomplete="off" placeholder="Enter city name" required />
+            <button type="submit">Get Weather</button>
           </form>
           <p id="message" class="message" role="status" aria-live="polite"></p>
         </section>
@@ -44,7 +39,7 @@
           <div class="location-row">
             <div>
               <p id="locationName" class="location-name">Manila</p>
-              <p id="locationMeta" class="location-meta">Search a city to load weather data</p>
+              <p id="locationMeta" class="location-meta">Enter a city to load weather information</p>
             </div>
             <p id="updatedAt" class="updated-at">—</p>
           </div>
@@ -52,34 +47,59 @@
           <div class="current-grid">
             <article class="temperature-card">
               <div id="currentIcon" class="current-icon" aria-hidden="true">🌤️</div>
-              <div>
-                <div class="temperature-line"><span id="temperature">--</span><span id="temperatureUnit">°C</span></div>
+              <div class="temperature-content">
+                <div class="temperature-line">
+                  <span id="temperature">--</span>
+                  <span id="temperatureUnit">°C</span>
+                </div>
                 <p id="condition">Ready for a search</p>
                 <p id="feelsLike">Feels like --</p>
               </div>
             </article>
 
             <div class="metrics-grid">
-              <article class="metric"><span>Humidity</span><strong id="humidity">--</strong><small>%</small></article>
-              <article class="metric"><span>Wind speed</span><strong id="wind">--</strong><small>km/h</small></article>
-              <article class="metric"><span>Pressure</span><strong id="pressure">--</strong><small>hPa</small></article>
-              <article class="metric"><span>Visibility</span><strong id="visibility">--</strong><small>km</small></article>
+              <article class="metric">
+                <span>Humidity</span>
+                <strong id="humidity">--</strong>
+                <small>%</small>
+              </article>
+              <article class="metric">
+                <span>Wind Speed</span>
+                <strong id="wind">--</strong>
+                <small>km/h</small>
+              </article>
+              <article class="metric">
+                <span>Pressure</span>
+                <strong id="pressure">--</strong>
+                <small>hPa</small>
+              </article>
+              <article class="metric">
+                <span>Visibility</span>
+                <strong id="visibility">--</strong>
+                <small>km</small>
+              </article>
             </div>
           </div>
 
           <section class="forecast-section">
-            <div class="section-heading"><h3>5-Day Forecast</h3><span id="timezone">—</span></div>
+            <div class="section-heading">
+              <h3>Weather Forecast</h3>
+              <span id="timezone">—</span>
+            </div>
             <div id="forecast" class="forecast-grid"></div>
           </section>
 
           <section class="history-section">
-            <div class="section-heading"><h3>Recent Searches</h3><button id="clearHistory" class="text-button" type="button">Clear history</button></div>
+            <div class="section-heading">
+              <h3>Search History</h3>
+              <button id="clearHistory" class="text-button" type="button">Clear</button>
+            </div>
             <div id="history" class="history-list"></div>
           </section>
         </section>
 
         <footer>
-          <span>Recreated from the UoPeople CS 1103 Programming 2 activity.</span>
+          <span>Engr. Blademir Rubia</span>
           <span>Weather data: Open-Meteo · CC BY 4.0</span>
         </footer>
       </main>
