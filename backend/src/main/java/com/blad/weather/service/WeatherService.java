@@ -43,6 +43,7 @@ public class WeatherService {
         }
 
         JsonNode current = root.path("current");
+        String timezone = root.path("timezone").asText("");
         String condition = conditionFor(current.path("weather_code").asInt());
         boolean day = current.path("is_day").asInt(1) == 1;
 
