@@ -14,12 +14,8 @@
         <header class="topbar">
           <div class="brand">
             <div class="brand-mark" aria-hidden="true">☀️</div>
-            <div>
-              <h1>Weather App</h1>
-              <p>Current weather and forecast information</p>
-            </div>
+            <h1>Weather App</h1>
           </div>
-          <button id="unitToggle" class="unit-toggle" type="button" aria-label="Toggle temperature unit">°C</button>
         </header>
 
         <section class="search-card" aria-label="Weather search">
@@ -40,48 +36,50 @@
 
         <section id="weatherPanel" class="weather-panel" aria-live="polite">
           <div class="location-row">
-            <div>
-              <p id="locationName" class="location-name">Manila</p>
+            <div class="location-heading">
+              <div class="location-title">
+                <p id="locationName" class="location-name">Manila</p>
+                <button id="unitToggle" class="unit-toggle" type="button" aria-label="Toggle temperature unit">°C</button>
+              </div>
               <p id="locationMeta" class="location-meta">Enter a city to load weather information</p>
             </div>
             <p id="updatedAt" class="updated-at">—</p>
           </div>
 
-          <div class="current-grid">
-            <article class="temperature-card">
-              <div id="currentIcon" class="current-icon" aria-hidden="true">🌤️</div>
-              <div class="temperature-content">
-                <div class="temperature-line">
-                  <span id="temperature">--</span>
-                  <span id="temperatureUnit">°C</span>
-                </div>
-                <p id="condition">Ready for a search</p>
-                <p id="feelsLike">Feels like --</p>
-              </div>
+          <div class="current-card">
+            <div class="temperature-line">
+              <span id="temperature">--</span>
+              <span id="temperatureUnit">°C</span>
+            </div>
 
-              <div class="metrics-grid">
-                <article class="metric">
-                  <span>Humidity</span>
-                  <strong id="humidity">--</strong>
-                  <small>%</small>
-                </article>
-                <article class="metric">
-                  <span>Wind Speed</span>
-                  <strong id="wind">--</strong>
-                  <small>km/h</small>
-                </article>
-                <article class="metric">
-                  <span>Pressure</span>
-                  <strong id="pressure">--</strong>
-                  <small>hPa</small>
-                </article>
-                <article class="metric">
-                  <span>Visibility</span>
-                  <strong id="visibility">--</strong>
-                  <small>km</small>
-                </article>
-              </div>
-            </article>
+            <div class="current-summary">
+              <div id="currentIcon" class="current-icon" aria-hidden="true">🌤️</div>
+              <p id="condition">Ready for a search</p>
+              <p id="feelsLike">Feels like --</p>
+            </div>
+
+            <div class="metrics-grid">
+              <article class="metric">
+                <span>Humidity</span>
+                <strong id="humidity">--</strong>
+                <small>%</small>
+              </article>
+              <article class="metric">
+                <span>Wind Speed</span>
+                <strong id="wind">--</strong>
+                <small>km/h</small>
+              </article>
+              <article class="metric">
+                <span>Pressure</span>
+                <strong id="pressure">--</strong>
+                <small>hPa</small>
+              </article>
+              <article class="metric">
+                <span>Visibility</span>
+                <strong id="visibility">--</strong>
+                <small>km</small>
+              </article>
+            </div>
           </div>
 
           <section class="forecast-section">
