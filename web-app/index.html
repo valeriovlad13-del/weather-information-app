@@ -19,7 +19,8 @@
         </header>
 
         <section class="search-card" aria-label="Weather search">
-          <form id="searchForm" class="search-form">
+          <div class="search-box">
+            <form id="searchForm" class="search-form">
             <label class="sr-only" for="cityInput">City or coordinates</label>
             <input
               id="cityInput"
@@ -30,7 +31,9 @@
               required
             />
             <button type="submit">Search</button>
-          </form>
+            </form>
+            <div id="suggestions" class="suggestions" role="listbox" aria-label="Location suggestions"></div>
+          </div>
           <p id="message" class="message" role="status" aria-live="polite"></p>
         </section>
 
