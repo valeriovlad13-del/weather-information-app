@@ -148,7 +148,7 @@ h1 {
 .suggestions {
   position: absolute;
   z-index: 100;
-  top: calc(100% + 7px);
+  top: calc(100% + 2px);
   left: 0;
   right: 119px;
   display: none;
@@ -646,6 +646,7 @@ footer {
   }
 
   .suggestions {
+    top: calc(100% + 2px);
     right: 0;
   }
 
