@@ -80,6 +80,18 @@ function scheduleSuggestions() {
     fetchLocationSuggestions(cityInput.value.trim());
   }, 260);
 }
+function setInitialTheme() {
+  const hour = new Date().getHours();
+  const isDay = hour >= 6 && hour < 18;
+  document.body.dataset.day = isDay ? 'day' : 'night';
+  const icon = $('currentIcon');
+  if (icon) {
+    icon.innerHTML = isDay
+      ? iconFor(0, '', true)
+      : iconFor(0, '', false);
+  }
+}
+
 function unitSymbol() {
   return state.unit === 'f' ? '°F' : '°C';
 }
@@ -187,6 +199,11 @@ function weatherSvg(kind, extraClass = '') {
       fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
   `;
 
+  const moon = `
+    <path d="M57 12c-10 5-16 14-16 25 0 16 13 29 29 29 6 0 12-2 17-5-5 12-17 20-31 20-19 0-35-15-35-35S36 12 57 12Z"
+      fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+  `;
+
   const rain = `
     <g stroke="currentColor" stroke-width="4" stroke-linecap="round">
       <path d="m30 74-5 10"/><path d="m48 74-5 10"/><path d="m66 74-5 10"/>
@@ -234,9 +251,14 @@ function weatherSvg(kind, extraClass = '') {
   }
 }
 
-function iconFor(code, size = '') {
+function iconFor(code, size = '', isDay = true) {
   switch (code) {
-    case 0: return weatherSvg('clear', size);
+    case 0: return isDay
+      ? weatherSvg('clear', size)
+      : `<svg class="weather-icon ${size}" viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+          <path d="M57 12c-10 5-16 14-16 25 0 16 13 29 29 29 6 0 12-2 17-5-5 12-17 20-31 20-19 0-35-15-35-35S36 12 57 12Z"
+            fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+        </svg>`;
     case 1:
     case 2: return weatherSvg('partly', size);
     case 3: return weatherSvg('cloudy', size);
@@ -312,7 +334,7 @@ async function fetchOpenMeteoCoordinates(latitude, longitude, locationName = 'Cu
       weatherCode: current.weather_code,
       day: current.is_day === 1,
       condition: conditionFor(current.weather_code),
-      icon: iconFor(current.weather_code)
+      icon: iconFor(current.weather_code, '', current.is_day === 1)
     },
     forecast: daily.time.map((date, index) => {
       const code = daily.weather_code[index];
@@ -432,7 +454,16 @@ async function initializeLocation() {
 
     const ipLocation = await fetchIpLocation();
     cityInput.value = ipLocation.city;
-    await search(ipLocation.city, 'ip');
+    const data = await fetchOpenMeteoCoordinates(
+      ipLocation.latitude,
+      ipLocation.longitude,
+      ipLocation.city
+    );
+    data.location.country = ipLocation.country_name || '';
+    data.location.admin1 = ipLocation.region || '';
+    setMessage('Weather data loaded using approximate IP location.', 'success');
+    render(data);
+    saveHistory(ipLocation.city);
   } catch {
     search('Manila');
   }
@@ -577,5 +608,6 @@ $('clearHistory').addEventListener('click', () => {
   setMessage('Recent searches cleared.', 'success');
 });
 
+setInitialTheme();
 renderHistory();
 initializeLocation();
