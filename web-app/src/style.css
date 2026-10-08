@@ -1395,3 +1395,427 @@ footer {
     font-size: 8px;
   }
 }
+
+
+/* Final responsive system */
+@media (min-width: 921px) {
+  .shell {
+    width: min(920px, calc(100% - 48px));
+  }
+}
+
+@media (max-width: 700px) {
+  .shell {
+    width: calc(100% - 24px);
+  }
+
+  .weather-panel,
+  .search-card {
+    width: 100%;
+  }
+
+  .location-row {
+    gap: 12px;
+  }
+
+  .location-heading {
+    min-width: 0;
+  }
+
+  .updated-at {
+    flex: 0 0 auto;
+  }
+
+  .current-card {
+    min-width: 0;
+  }
+
+  .forecast-grid {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+
+  .forecast-card {
+    flex: 0 0 116px;
+    scroll-snap-align: start;
+  }
+
+  .history-item {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .shell {
+    width: calc(100% - 16px);
+    padding-top: 10px;
+  }
+
+  .topbar {
+    margin-bottom: 9px;
+  }
+
+  .search-card {
+    padding: 10px;
+  }
+
+  .search-form {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* On mobile, suggestions follow the complete search form. */
+  .suggestions {
+    top: 100px;
+    left: 0;
+    right: 0;
+  }
+
+  .suggestion-item {
+    min-height: 50px;
+  }
+
+  .location-button {
+    width: 100%;
+  }
+
+  .location-row {
+    gap: 8px;
+  }
+
+  .location-name {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .updated-at {
+    max-width: 30%;
+    line-height: 1.3;
+  }
+
+  .current-card {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "temperature"
+      "summary"
+      "metrics";
+  }
+
+  .current-card .temperature-line {
+    justify-content: flex-end;
+  }
+
+  .current-summary {
+    width: 100%;
+    min-height: 154px;
+    padding-top: 100px;
+  }
+
+  .current-summary .current-icon {
+    width: 94px;
+    height: 94px;
+  }
+
+  .current-summary #feelsLike {
+    top: 7px;
+    right: 0;
+    max-width: 48%;
+    text-align: right;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .section-heading {
+    gap: 8px;
+  }
+
+  .section-heading h3 {
+    min-width: 0;
+  }
+
+  .section-heading .forecast-location {
+    max-width: 48%;
+  }
+
+  .section-heading .forecast-location #timezone {
+    max-width: 100%;
+  }
+
+  footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 420px) {
+  .shell {
+    width: calc(100% - 12px);
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+  }
+
+  .search-card,
+  .weather-panel {
+    border-radius: 13px;
+  }
+
+  .weather-panel {
+    padding: 9px;
+  }
+
+  .location-row {
+    padding: 3px 4px 10px;
+  }
+
+  .location-name {
+    font-size: clamp(21px, 7vw, 25px);
+  }
+
+  .location-meta {
+    font-size: 9px;
+    line-height: 1.3;
+  }
+
+  .updated-at {
+    max-width: 28%;
+    font-size: 9px;
+  }
+
+  .current-card {
+    padding: 13px 10px 11px;
+  }
+
+  #temperature {
+    font-size: clamp(44px, 14vw, 54px);
+  }
+
+  .current-summary {
+    min-height: 145px;
+    padding-top: 94px;
+  }
+
+  .current-summary .current-icon {
+    width: 88px;
+    height: 88px;
+  }
+
+  .current-summary #condition {
+    font-size: 13px;
+  }
+
+  .current-summary #feelsLike {
+    font-size: 9px;
+  }
+
+  .metric span {
+    font-size: 8px;
+  }
+
+  .metric strong {
+    font-size: 14px;
+  }
+
+  .forecast-card {
+    flex-basis: 108px;
+    min-height: 128px;
+  }
+
+  .forecast-card b {
+    font-size: 11px;
+  }
+
+  .section-heading .forecast-location {
+    max-width: 45%;
+  }
+
+  .section-heading .forecast-location #localTime {
+    font-size: 8px;
+  }
+
+  .section-heading .forecast-location #timezone {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .shell {
+    width: calc(100% - 8px);
+  }
+
+  .brand {
+    gap: 7px;
+  }
+
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .brand-icon {
+    width: 21px;
+    height: 21px;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  .search-card {
+    padding: 8px;
+  }
+
+  .suggestions {
+    top: 100px;
+  }
+
+  .weather-panel {
+    padding: 8px;
+  }
+
+  .location-row {
+    gap: 5px;
+  }
+
+  .updated-at {
+    max-width: 31%;
+    font-size: 8px;
+  }
+
+  .current-card {
+    padding: 11px 8px 9px;
+  }
+
+  #temperature {
+    font-size: 43px;
+  }
+
+  .current-summary {
+    min-height: 137px;
+    padding-top: 88px;
+  }
+
+  .current-summary .current-icon {
+    width: 82px;
+    height: 82px;
+  }
+
+  .metrics-grid {
+    gap: 3px 1px;
+  }
+
+  .metric {
+    padding-left: 1px;
+    padding-right: 1px;
+  }
+
+  .forecast-card {
+    flex-basis: 104px;
+    min-height: 124px;
+  }
+
+  .section-heading .forecast-location {
+    max-width: 43%;
+  }
+
+  footer {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 330px) {
+  .location-row {
+    align-items: flex-start;
+  }
+
+  .updated-at {
+    max-width: 34%;
+  }
+
+  .current-summary #feelsLike {
+    position: static;
+    max-width: 100%;
+    margin-top: 3px;
+    text-align: center;
+  }
+
+  .current-summary {
+    min-height: 145px;
+    padding-top: 88px;
+  }
+
+  .section-heading .forecast-location {
+    max-width: 46%;
+  }
+
+  .section-heading .forecast-location #localTime,
+  .section-heading .forecast-location #timezone {
+    font-size: 8px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .shell {
+    padding-top: 8px;
+  }
+
+  .topbar {
+    margin-bottom: 7px;
+  }
+
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .search-card {
+    padding: 9px;
+  }
+
+  .weather-panel {
+    padding: 10px;
+  }
+
+  .current-summary {
+    min-height: 125px;
+    padding-top: 72px;
+  }
+
+  .current-summary .current-icon {
+    width: 70px;
+    height: 70px;
+  }
+
+  .current-card {
+    padding-top: 12px;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .search-form button,
+  .location-button,
+  .unit-toggle,
+  .text-button,
+  .suggestion-item,
+  .history-item {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .suggestion-item,
+  .history-item {
+    min-height: 48px;
+  }
+}
