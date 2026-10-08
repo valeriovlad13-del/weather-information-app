@@ -842,3 +842,71 @@ footer {
     height: 74px;
   }
 }
+
+
+.location-button {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 9px;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--muted-strong);
+  font-size: 11px;
+  font-weight: 650;
+  box-shadow: 0 6px 16px rgba(6, 70, 122, 0.10);
+}
+
+.location-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.20);
+  color: var(--text);
+}
+
+.location-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.location-button.loading .location-button-icon {
+  animation: location-pulse 1s ease-in-out infinite;
+}
+
+.location-button-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.location-note {
+  margin: 6px 2px -1px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+@keyframes location-pulse {
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+@media (max-width: 520px) {
+  .location-button {
+    width: 100%;
+    min-height: 42px;
+    margin-top: 8px;
+  }
+
+  .location-note {
+    font-size: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .location-button.loading .location-button-icon {
+    animation: none;
+  }
+}
