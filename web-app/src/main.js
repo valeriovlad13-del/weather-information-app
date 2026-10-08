@@ -220,7 +220,7 @@ function weatherSvg(kind, extraClass = '') {
     case 'fog':
       return `<svg ${common}>${cloud}${fog}</svg>`;
     case 'drizzle':
-      return `<svg ${common}>${cloud}${rain.replaceAll('4', '3')}</svg>`;
+      return `<svg ${common}>${cloud}${rain}</svg>`;
     case 'rain':
       return `<svg ${common}>${cloud}${rain}</svg>`;
     case 'snow':
