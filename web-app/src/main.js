@@ -1,6 +1,8 @@
 import './style.css';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://weather-information-app-b3vp.onrender.com').replace(/\/$/, '');
+const OPEN_METEO_GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
+const OPEN_METEO_FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 const HISTORY_KEY = 'weather-information-history-v1';
 
 const state = { unit: localStorage.getItem('weather-unit') || 'c', data: null };
@@ -66,8 +68,160 @@ function relativeTime(value) {
   return `${Math.floor(hours / 24)} day ago`;
 }
 
+
 function escapeHtml(value) {
   return value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+}
+
+function conditionFor(code) {
+  switch (code) {
+    case 0: return 'Clear sky';
+    case 1:
+    case 2: return 'Partly cloudy';
+    case 3: return 'Overcast';
+    case 45:
+    case 48: return 'Foggy';
+    case 51:
+    case 53:
+    case 55:
+    case 56:
+    case 57: return 'Drizzle';
+    case 61:
+    case 63:
+    case 65:
+    case 66:
+    case 67:
+    case 80:
+    case 81:
+    case 82: return 'Rain';
+    case 71:
+    case 73:
+    case 75:
+    case 77:
+    case 85:
+    case 86: return 'Snow';
+    case 95:
+    case 96:
+    case 99: return 'Thunderstorm';
+    default: return 'Unknown conditions';
+  }
+}
+
+function iconFor(code) {
+  switch (code) {
+    case 0: return '☀️';
+    case 1:
+    case 2: return '⛅';
+    case 3: return '☁️';
+    case 45:
+    case 48: return '🌫️';
+    case 51:
+    case 53:
+    case 55:
+    case 56:
+    case 57: return '🌦️';
+    case 61:
+    case 63:
+    case 65:
+    case 66:
+    case 67:
+    case 80:
+    case 81:
+    case 82: return '🌧️';
+    case 71:
+    case 73:
+    case 75:
+    case 77:
+    case 85:
+    case 86: return '❄️';
+    case 95:
+    case 96:
+    case 99: return '⛈️';
+    default: return '🌤️';
+  }
+}
+
+async function fetchOpenMeteoWeather(city) {
+  const geocodingParams = new URLSearchParams({
+    name: city,
+    count: '1',
+    language: 'en',
+    format: 'json'
+  });
+
+  const geocodingResponse = await fetch(
+    OPEN_METEO_GEOCODING_URL + '?' + geocodingParams.toString()
+  );
+  const geocodingPayload = await geocodingResponse.json().catch(() => null);
+
+  if (!geocodingResponse.ok) {
+    throw new Error(geocodingPayload?.reason || 'Unable to find that city.');
+  }
+
+  const location = geocodingPayload?.results?.[0];
+  if (!location) {
+    throw new Error('City not found.');
+  }
+
+  const forecastParams = new URLSearchParams({
+    latitude: String(location.latitude),
+    longitude: String(location.longitude),
+    current: 'temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,pressure_msl,wind_speed_10m,visibility,is_day',
+    daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
+    temperature_unit: state.unit === 'f' ? 'fahrenheit' : 'celsius',
+    wind_speed_unit: 'kmh',
+    timezone: 'auto',
+    forecast_days: '5'
+  });
+
+  const forecastResponse = await fetch(
+    OPEN_METEO_FORECAST_URL + '?' + forecastParams.toString()
+  );
+  const forecastPayload = await forecastResponse.json().catch(() => null);
+
+  if (!forecastResponse.ok || forecastPayload?.error) {
+    throw new Error(forecastPayload?.reason || 'Unable to retrieve weather data.');
+  }
+
+  const current = forecastPayload.current;
+  const daily = forecastPayload.daily;
+
+  return {
+    location: {
+      name: location.name || city,
+      country: location.country || '',
+      admin1: location.admin1 || '',
+      latitude: location.latitude,
+      longitude: location.longitude,
+      timezone: forecastPayload.timezone || ''
+    },
+    current: {
+      temperature: current.temperature_2m,
+      feelsLike: current.apparent_temperature,
+      humidity: current.relative_humidity_2m,
+      windSpeed: current.wind_speed_10m,
+      pressure: current.pressure_msl,
+      visibility: current.visibility / 1000,
+      precipitation: current.precipitation,
+      weatherCode: current.weather_code,
+      day: current.is_day === 1,
+      condition: conditionFor(current.weather_code),
+      icon: iconFor(current.weather_code)
+    },
+    forecast: daily.time.map((date, index) => {
+      const code = daily.weather_code[index];
+      return {
+        date,
+        weatherCode: code,
+        maxTemperature: daily.temperature_2m_max[index],
+        minTemperature: daily.temperature_2m_min[index],
+        precipitationProbability: daily.precipitation_probability_max[index],
+        condition: conditionFor(code),
+        icon: iconFor(code)
+      };
+    }),
+    source: 'Open-Meteo'
+  };
 }
 
 function render(data) {
@@ -106,14 +260,42 @@ async function search(city) {
   cityInput.value = trimmed;
   setMessage('Loading weather data…', 'loading');
   $('weatherPanel').classList.add('loading');
+
   try {
-    if (!API_BASE_URL) throw new Error('Weather API is not configured. Set VITE_API_BASE_URL in the deployment environment.');
-    const response = await fetch(`${API_BASE_URL}/api/weather?city=${encodeURIComponent(trimmed)}&unit=${state.unit}`);
-    const payload = await response.json().catch(() => null);
-    if (!response.ok) throw new Error(payload?.message || 'Unable to retrieve weather data.');
+    let payload = null;
+    let backendError = null;
+
+    if (API_BASE_URL) {
+      try {
+        const response = await fetch(
+          API_BASE_URL + '/api/weather?city=' + encodeURIComponent(trimmed) + '&unit=' + state.unit
+        );
+        const backendPayload = await response.json().catch(() => null);
+
+        if (response.ok) {
+          payload = backendPayload;
+        } else {
+          backendError = backendPayload?.message || 'Backend request failed with HTTP ' + response.status + '.';
+        }
+      } catch (error) {
+        backendError = error.message || 'Backend request failed.';
+      }
+    }
+
+    if (!payload) {
+      payload = await fetchOpenMeteoWeather(trimmed);
+      setMessage(
+        backendError
+          ? 'Weather data loaded directly from Open-Meteo.'
+          : 'Weather data loaded.',
+        'success'
+      );
+    } else {
+      setMessage('Weather data loaded.', 'success');
+    }
+
     render(payload);
     saveHistory(payload.location.name);
-    setMessage('Weather data loaded.', 'success');
   } catch (error) {
     setMessage(error.message || 'Something went wrong. Please try again.', 'error');
   } finally {
