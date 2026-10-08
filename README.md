@@ -4,13 +4,15 @@ A full-stack recreation and extension of a University of the People **CS 1103 Pr
 
 ## Features
 
-- Search weather by city
+- Search weather by city with live location suggestions
+- Automatic browser/IP location detection
 - Current temperature and feels-like temperature
 - Humidity, wind speed, pressure, visibility, and precipitation
 - Five-day forecast
 - Celsius/Fahrenheit switching
 - Recent-search history stored in the browser
-- Day/night presentation
+- Day/night presentation with dynamic SVG weather icons
+- Destination local time and timezone
 - Loading and error states
 - REST API with CORS configuration
 - Health endpoint for deployment monitoring
@@ -238,6 +240,7 @@ The workflow verifies:
 1. Backend Maven tests with Java 21.
 2. Frontend dependency installation.
 3. Frontend production build.
+4. Java desktop Maven build.
 
 This helps prevent a broken backend or frontend from being merged into the main branch.
 
