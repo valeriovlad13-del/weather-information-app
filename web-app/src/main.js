@@ -601,7 +601,7 @@ searchForm.addEventListener('submit', (event) => {
     return;
   }
   search(cityInput.value);
-}
+});
 
 $('unitToggle').addEventListener('click', () => {
   state.unit = state.unit === 'c' ? 'f' : 'c';
