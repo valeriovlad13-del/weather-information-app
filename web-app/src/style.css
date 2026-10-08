@@ -778,3 +778,67 @@ footer {
     transition: none !important;
   }
 }
+
+
+/* Vector weather icon system */
+.brand-icon {
+  width: 27px;
+  height: 27px;
+  display: block;
+}
+
+.weather-icon {
+  display: block;
+  width: 1em;
+  height: 1em;
+  overflow: visible;
+  color: currentColor;
+}
+
+.current-icon {
+  color: #fff;
+}
+
+.current-icon .weather-icon {
+  width: 92px;
+  height: 92px;
+  filter: drop-shadow(0 10px 16px rgba(0, 53, 110, 0.16));
+}
+
+.forecast-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  color: #fff;
+}
+
+.forecast-icon .weather-icon {
+  width: 44px;
+  height: 44px;
+  filter: drop-shadow(0 6px 10px rgba(0, 53, 110, 0.13));
+}
+
+@media (max-width: 520px) {
+  .current-icon .weather-icon {
+    width: 82px;
+    height: 82px;
+  }
+
+  .forecast-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .forecast-icon .weather-icon {
+    width: 41px;
+    height: 41px;
+  }
+}
+
+@media (max-width: 360px) {
+  .current-icon .weather-icon {
+    width: 74px;
+    height: 74px;
+  }
+}
