@@ -11,12 +11,73 @@ const $ = (id) => document.getElementById(id);
 const searchForm = $('searchForm');
 const cityInput = $('cityInput');
 const message = $('message');
+const suggestions = $('suggestions');
+let suggestionTimer = null;
+let suggestionController = null;
+let suggestionItems = [];
+let activeSuggestion = -1;
 
 function setMessage(text = '', type = '') {
   message.textContent = text;
   message.className = `message ${type}`.trim();
 }
 
+function clearSuggestions() {
+  suggestionItems = [];
+  activeSuggestion = -1;
+  suggestions.innerHTML = '';
+  suggestions.classList.remove('open');
+}
+
+function renderSuggestions(results) {
+  suggestionItems = results;
+  activeSuggestion = -1;
+  if (!results.length) { clearSuggestions(); return; }
+  suggestions.innerHTML = results.map(function(place, index) {
+    const details = [place.admin1, place.country].filter(Boolean).join(', ');
+    return '<button type="button" class="suggestion-item" data-index="' + index + '" role="option" aria-selected="false">' +
+      '<span class="suggestion-name">' + escapeHtml(place.name) + '</span>' +
+      '<span class="suggestion-meta">' + escapeHtml(details) + '</span>' +
+      '</button>';
+  }).join('');
+  suggestions.classList.add('open');
+  suggestions.querySelectorAll('.suggestion-item').forEach(function(button) {
+    button.addEventListener('mousedown', function(event) {
+      event.preventDefault();
+      selectSuggestion(Number(button.dataset.index));
+    });
+  });
+}
+
+function selectSuggestion(index) {
+  const place = suggestionItems[index];
+  if (!place) return;
+  cityInput.value = place.name;
+  clearSuggestions();
+  search(place.name);
+}
+
+async function fetchLocationSuggestions(query) {
+  if (query.length < 3) { clearSuggestions(); return; }
+  if (suggestionController) suggestionController.abort();
+  suggestionController = new AbortController();
+  try {
+    const params = new URLSearchParams({ name: query, count: '5', language: 'en', format: 'json' });
+    const response = await fetch(OPEN_METEO_GEOCODING_URL + '?' + params.toString(), { signal: suggestionController.signal });
+    const payload = await response.json().catch(function() { return null; });
+    if (!response.ok || !Array.isArray(payload?.results)) { clearSuggestions(); return; }
+    renderSuggestions(payload.results);
+  } catch (error) {
+    if (error.name !== 'AbortError') clearSuggestions();
+  }
+}
+
+function scheduleSuggestions() {
+  window.clearTimeout(suggestionTimer);
+  suggestionTimer = window.setTimeout(function() {
+    fetchLocationSuggestions(cityInput.value.trim());
+  }, 260);
+}
 function unitSymbol() {
   return state.unit === 'f' ? '°F' : '°C';
 }
@@ -256,6 +317,7 @@ function render(data) {
 
 async function search(city) {
   const trimmed = city.trim();
+  clearSuggestions();
   if (!trimmed) return;
   cityInput.value = trimmed;
   setMessage('Loading weather data…', 'loading');
@@ -298,10 +360,50 @@ async function search(city) {
   }
 }
 
+cityInput.addEventListener('input', scheduleSuggestions);
+
+cityInput.addEventListener('keydown', (event) => {
+  if (!suggestions.classList.contains('open')) return;
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    activeSuggestion = Math.min(activeSuggestion + 1, suggestionItems.length - 1);
+    updateActiveSuggestion();
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    activeSuggestion = Math.max(activeSuggestion - 1, 0);
+    updateActiveSuggestion();
+  } else if (event.key === 'Enter' && activeSuggestion >= 0) {
+    event.preventDefault();
+    selectSuggestion(activeSuggestion);
+  } else if (event.key === 'Escape') {
+    clearSuggestions();
+  }
+});
+
+cityInput.addEventListener('focus', () => {
+  if (cityInput.value.trim().length >= 3) scheduleSuggestions();
+});
+
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('.search-box')) clearSuggestions();
+});
+
+function updateActiveSuggestion() {
+  suggestions.querySelectorAll('.suggestion-item').forEach((button, index) => {
+    const active = index === activeSuggestion;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', String(active));
+  });
+}
+
 searchForm.addEventListener('submit', (event) => {
   event.preventDefault();
+  if (activeSuggestion >= 0) {
+    selectSuggestion(activeSuggestion);
+    return;
+  }
   search(cityInput.value);
-});
+}
 
 $('unitToggle').addEventListener('click', () => {
   state.unit = state.unit === 'c' ? 'f' : 'c';
