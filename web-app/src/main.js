@@ -3,6 +3,7 @@ import './style.css';
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://weather-information-app-b3vp.onrender.com').replace(/\/$/, '');
 const OPEN_METEO_GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 const OPEN_METEO_FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
+const IP_GEOLOCATION_URL = 'https://ipapi.co/json/';
 const HISTORY_KEY = 'weather-information-history-v1';
 
 const state = { unit: localStorage.getItem('weather-unit') || 'c', data: null };
@@ -12,6 +13,7 @@ const searchForm = $('searchForm');
 const cityInput = $('cityInput');
 const message = $('message');
 const suggestions = $('suggestions');
+const locationButton = $('locationButton');
 let suggestionTimer = null;
 let suggestionController = null;
 let suggestionItems = [];
@@ -266,31 +268,10 @@ function iconFor(code, size = '') {
   }
 }
 
-async function fetchOpenMeteoWeather(city) {
-  const geocodingParams = new URLSearchParams({
-    name: city,
-    count: '1',
-    language: 'en',
-    format: 'json'
-  });
-
-  const geocodingResponse = await fetch(
-    OPEN_METEO_GEOCODING_URL + '?' + geocodingParams.toString()
-  );
-  const geocodingPayload = await geocodingResponse.json().catch(() => null);
-
-  if (!geocodingResponse.ok) {
-    throw new Error(geocodingPayload?.reason || 'Unable to find that city.');
-  }
-
-  const location = geocodingPayload?.results?.[0];
-  if (!location) {
-    throw new Error('City not found.');
-  }
-
+async function fetchOpenMeteoCoordinates(latitude, longitude, locationName = 'Current Location') {
   const forecastParams = new URLSearchParams({
-    latitude: String(location.latitude),
-    longitude: String(location.longitude),
+    latitude: String(latitude),
+    longitude: String(longitude),
     current: 'temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,pressure_msl,wind_speed_10m,visibility,is_day',
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
     temperature_unit: state.unit === 'f' ? 'fahrenheit' : 'celsius',
@@ -313,11 +294,11 @@ async function fetchOpenMeteoWeather(city) {
 
   return {
     location: {
-      name: location.name || city,
-      country: location.country || '',
-      admin1: location.admin1 || '',
-      latitude: location.latitude,
-      longitude: location.longitude,
+      name: locationName,
+      country: '',
+      admin1: '',
+      latitude,
+      longitude,
       timezone: forecastPayload.timezone || ''
     },
     current: {
@@ -347,6 +328,114 @@ async function fetchOpenMeteoWeather(city) {
     }),
     source: 'Open-Meteo'
   };
+}
+
+async function fetchOpenMeteoWeather(city) {
+  const geocodingParams = new URLSearchParams({
+    name: city,
+    count: '1',
+    language: 'en',
+    format: 'json'
+  });
+
+  const geocodingResponse = await fetch(
+    OPEN_METEO_GEOCODING_URL + '?' + geocodingParams.toString()
+  );
+  const geocodingPayload = await geocodingResponse.json().catch(() => null);
+
+  if (!geocodingResponse.ok) {
+    throw new Error(geocodingPayload?.reason || 'Unable to find that city.');
+  }
+
+  const location = geocodingPayload?.results?.[0];
+  if (!location) {
+    throw new Error('City not found.');
+  }
+
+  return fetchOpenMeteoCoordinates(location.latitude, location.longitude, location.name || city)
+    .then((data) => ({
+      ...data,
+      location: {
+        ...data.location,
+        country: location.country || '',
+        admin1: location.admin1 || ''
+      }
+    }));
+}
+
+async function fetchIpLocation() {
+  const response = await fetch(IP_GEOLOCATION_URL);
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok || payload?.error || !payload?.city) {
+    throw new Error(payload?.reason || 'Unable to determine your approximate location.');
+  }
+
+  return payload;
+}
+
+function getBrowserLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Browser location is not supported.'));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => resolve(position),
+      (error) => reject(error),
+      {
+        enableHighAccuracy: false,
+        maximumAge: 300000,
+        timeout: 8000
+      }
+    );
+  });
+}
+
+async function useCurrentLocation() {
+  clearSuggestions();
+  locationButton.disabled = true;
+  locationButton.classList.add('loading');
+  setMessage('Finding your location…', 'loading');
+
+  try {
+    const position = await getBrowserLocation();
+    const { latitude, longitude } = position.coords;
+    const data = await fetchOpenMeteoCoordinates(latitude, longitude);
+    setMessage('Weather data loaded from your device location.', 'success');
+    render(data);
+    saveHistory('Current Location');
+  } catch (error) {
+    try {
+      const ipLocation = await fetchIpLocation();
+      cityInput.value = ipLocation.city;
+      await search(ipLocation.city, 'ip');
+    } catch (fallbackError) {
+      setMessage('Unable to determine your location. You can search for a city manually.', 'error');
+    }
+  } finally {
+    locationButton.disabled = false;
+    locationButton.classList.remove('loading');
+  }
+}
+
+async function initializeLocation() {
+  try {
+    if (navigator.permissions?.query) {
+      const permission = await navigator.permissions.query({ name: 'geolocation' });
+      if (permission.state === 'granted') {
+        await useCurrentLocation();
+        return;
+      }
+    }
+
+    const ipLocation = await fetchIpLocation();
+    cityInput.value = ipLocation.city;
+    await search(ipLocation.city, 'ip');
+  } catch {
+    search('Manila');
+  }
 }
 
 function render(data) {
@@ -379,7 +468,7 @@ function render(data) {
   document.body.dataset.day = current.day ? 'day' : 'night';
 }
 
-async function search(city) {
+async function search(city, source = 'search') {
   const trimmed = city.trim();
   clearSuggestions();
   if (!trimmed) return;
@@ -410,9 +499,13 @@ async function search(city) {
 
     if (!payload) {
       payload = await fetchOpenMeteoWeather(trimmed);
-      setMessage('Weather data loaded.', 'success');
+      setMessage(source === 'ip'
+        ? 'Weather data loaded using approximate IP location.'
+        : 'Weather data loaded.', 'success');
     } else {
-      setMessage('Weather data loaded.', 'success');
+      setMessage(source === 'ip'
+        ? 'Weather data loaded using approximate IP location.'
+        : 'Weather data loaded.', 'success');
     }
 
     render(payload);
@@ -476,6 +569,8 @@ $('unitToggle').addEventListener('click', () => {
   if (state.data) search(state.data.location.name);
 });
 
+locationButton.addEventListener('click', useCurrentLocation);
+
 $('clearHistory').addEventListener('click', () => {
   localStorage.removeItem(HISTORY_KEY);
   renderHistory();
@@ -483,4 +578,4 @@ $('clearHistory').addEventListener('click', () => {
 });
 
 renderHistory();
-search('Manila');
+initializeLocation();
