@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: weather-information-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: ALLOWED_ORIGINS
+        sync: false
