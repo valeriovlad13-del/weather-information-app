@@ -51,12 +51,32 @@ function renderSuggestions(results) {
   });
 }
 
-function selectSuggestion(index) {
+async function selectSuggestion(index) {
   const place = suggestionItems[index];
   if (!place) return;
+
   cityInput.value = place.name;
   clearSuggestions();
-  search(place.name);
+  setMessage('Loading weather data…', 'loading');
+  $('weatherPanel').classList.add('loading');
+
+  try {
+    const data = await fetchOpenMeteoCoordinates(
+      place.latitude,
+      place.longitude,
+      place.name
+    );
+
+    data.location.country = place.country || '';
+    data.location.admin1 = place.admin1 || '';
+    setMessage('Weather data loaded.', 'success');
+    render(data);
+    saveHistory(place.name);
+  } catch (error) {
+    setMessage(error.message || 'Unable to load weather data.', 'error');
+  } finally {
+    $('weatherPanel').classList.remove('loading');
+  }
 }
 
 async function fetchLocationSuggestions(query) {
@@ -68,6 +88,7 @@ async function fetchLocationSuggestions(query) {
     const response = await fetch(OPEN_METEO_GEOCODING_URL + '?' + params.toString(), { signal: suggestionController.signal });
     const payload = await response.json().catch(function() { return null; });
     if (!response.ok || !Array.isArray(payload?.results)) { clearSuggestions(); return; }
+    if (query !== cityInput.value.trim()) return;
     renderSuggestions(payload.results);
   } catch (error) {
     if (error.name !== 'AbortError') clearSuggestions();
@@ -519,7 +540,7 @@ function render(data) {
   $('locationName').textContent = location.name;
   $('locationMeta').textContent = [location.admin1, location.country].filter(Boolean).join(', ');
   $('updatedAt').textContent = `Updated ${new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(new Date())}`;
-  $('currentIcon').innerHTML = current.icon;
+  $('currentIcon').innerHTML = iconFor(current.weatherCode, '', current.day);
   $('temperature').textContent = formatNumber(current.temperature);
   $('temperatureUnit').textContent = unitSymbol();
   $('condition').textContent = current.condition;
@@ -537,7 +558,7 @@ function render(data) {
   $('forecast').innerHTML = forecast.map((day, index) => `
     <article class="forecast-card ${index === 0 ? 'today' : ''}">
       <span>${index === 0 ? 'Today' : formatDate(day.date)}</span>
-      <strong class="forecast-icon">${day.icon}</strong>
+      <strong class="forecast-icon">${iconFor(day.weatherCode)}</strong>
       <b>${formatNumber(day.maxTemperature)} / ${formatNumber(day.minTemperature)}${unitSymbol()}</b>
       <small>${day.precipitationProbability}% rain</small>
     </article>
@@ -556,7 +577,6 @@ async function search(city, source = 'search') {
 
   try {
     let payload = null;
-    let backendError = null;
 
     if (API_BASE_URL) {
       try {
@@ -567,11 +587,9 @@ async function search(city, source = 'search') {
 
         if (response.ok) {
           payload = backendPayload;
-        } else {
-          backendError = backendPayload?.message || 'Backend request failed with HTTP ' + response.status + '.';
         }
-      } catch (error) {
-        backendError = error.message || 'Backend request failed.';
+      } catch {
+        // Use the direct Open-Meteo fallback below.
       }
     }
 
