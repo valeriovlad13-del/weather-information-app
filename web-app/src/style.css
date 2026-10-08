@@ -1331,27 +1331,38 @@ footer {
 }
 
 
-.forecast-location {
+.section-heading .forecast-location {
   display: flex;
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 48%;
+  min-width: max-content;
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
   gap: 2px;
-  max-width: 58%;
+  overflow: visible;
   color: var(--muted);
   font-size: 10px;
   line-height: 1.25;
   text-align: right;
+  white-space: normal;
 }
 
-.forecast-location #localTime {
+.section-heading .forecast-location #localTime {
+  display: block;
+  max-width: none;
+  overflow: visible;
   color: var(--muted-strong);
   font-size: 10px;
   font-weight: 600;
+  text-overflow: clip;
   white-space: nowrap;
 }
 
-.forecast-location #timezone {
+.section-heading .forecast-location #timezone {
+  display: block;
+  width: auto;
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1359,26 +1370,28 @@ footer {
 }
 
 @media (max-width: 520px) {
-  .forecast-location {
-    max-width: 55%;
+  .section-heading .forecast-location {
+    max-width: 46%;
+    min-width: 0;
   }
 
-  .forecast-location #localTime {
+  .section-heading .forecast-location #localTime {
+    max-width: none;
     font-size: 9px;
   }
 
-  .forecast-location #timezone {
+  .section-heading .forecast-location #timezone {
     max-width: 100%;
   }
 }
 
 @media (max-width: 380px) {
-  .forecast-location {
-    max-width: 52%;
+  .section-heading .forecast-location {
+    max-width: 45%;
     font-size: 9px;
   }
 
-  .forecast-location #localTime {
+  .section-heading .forecast-location #localTime {
     font-size: 8px;
   }
 }
