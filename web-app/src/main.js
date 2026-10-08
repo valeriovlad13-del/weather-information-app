@@ -83,13 +83,9 @@ function scheduleSuggestions() {
 function setInitialTheme() {
   const hour = new Date().getHours();
   const isDay = hour >= 6 && hour < 18;
-  document.body.dataset.day = isDay ? 'day' : 'night';
+  applyDayNight(isDay);
   const icon = $('currentIcon');
-  if (icon) {
-    icon.innerHTML = isDay
-      ? iconFor(0, '', true)
-      : iconFor(0, '', false);
-  }
+  if (icon) icon.innerHTML = iconFor(0, '', isDay);
 }
 
 function unitSymbol() {
@@ -182,112 +178,126 @@ function conditionFor(code) {
   }
 }
 
-function weatherSvg(kind, extraClass = '') {
+function weatherSvg(kind, extraClass = '', isDay = true) {
   const className = `weather-icon ${extraClass}`.trim();
   const common = `class="${className}" viewBox="0 0 96 96" aria-hidden="true" focusable="false"`;
 
   const sun = `
-    <circle cx="32" cy="32" r="13" fill="none" stroke="currentColor" stroke-width="4"/>
+    <circle cx="29" cy="29" r="12" fill="none" stroke="currentColor" stroke-width="4"/>
     <g stroke="currentColor" stroke-width="4" stroke-linecap="round">
-      <path d="M32 7v9"/><path d="M32 48v9"/><path d="M7 32h9"/><path d="M48 32h9"/>
-      <path d="m14.3 14.3 6.4 6.4"/><path d="m43.3 43.3 6.4 6.4"/>
-      <path d="m49.7 14.3-6.4 6.4"/><path d="m20.7 43.3-6.4 6.4"/>
+      <path d="M29 6v8"/><path d="M29 44v8"/><path d="M6 29h8"/><path d="M44 29h8"/>
+      <path d="m12.7 12.7 5.7 5.7"/><path d="m39.6 39.6 5.7 5.7"/>
+      <path d="m45.3 12.7-5.7 5.7"/><path d="m18.4 39.6-5.7 5.7"/>
     </g>`;
 
-  const cloud = `
-    <path d="M23 66h48a15 15 0 0 0 0-30 22 22 0 0 0-42-4A17 17 0 0 0 23 66Z"
-      fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+  const moon = `
+    <path d="M48 8c-8 6-13 15-13 25 0 18 14 32 32 32 7 0 14-2 19-6-5 15-19 25-35 25-21 0-38-17-38-38C13 27 28 11 48 8Z"
+      fill="currentColor" fill-opacity=".20" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
   `;
 
-  const moon = `
-    <path d="M57 12c-10 5-16 14-16 25 0 16 13 29 29 29 6 0 12-2 17-5-5 12-17 20-31 20-19 0-35-15-35-35S36 12 57 12Z"
+  const cloud = `
+    <path d="M22 68h51a16 16 0 0 0 0-32 23 23 0 0 0-44-4A18 18 0 0 0 22 68Z"
       fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
   `;
 
   const rain = `
     <g stroke="currentColor" stroke-width="4" stroke-linecap="round">
-      <path d="m30 74-5 10"/><path d="m48 74-5 10"/><path d="m66 74-5 10"/>
+      <path d="m29 76-5 10"/><path d="m48 76-5 10"/><path d="m67 76-5 10"/>
     </g>
   `;
 
   const snow = `
     <g stroke="currentColor" stroke-width="3.2" stroke-linecap="round">
-      <path d="M30 74v14"/><path d="m24 77 12 8"/><path d="m36 77-12 8"/>
-      <path d="M48 74v14"/><path d="m42 77 12 8"/><path d="m54 77-12 8"/>
-      <path d="M66 74v14"/><path d="m60 77 12 8"/><path d="m72 77-12 8"/>
+      <path d="M29 75v14"/><path d="m23 78 12 8"/><path d="m35 78-12 8"/>
+      <path d="M48 75v14"/><path d="m42 78 12 8"/><path d="m54 78-12 8"/>
+      <path d="M67 75v14"/><path d="m61 78 12 8"/><path d="m73 78-12 8"/>
     </g>
   `;
 
   const fog = `
     <g stroke="currentColor" stroke-width="4" stroke-linecap="round">
-      <path d="M20 70h56"/><path d="M28 80h40"/>
+      <path d="M18 73h60"/><path d="M27 84h42"/>
     </g>
   `;
 
   const bolt = `
-    <path d="m52 69-10 16h11l-5 11 18-22H55l7-11Z"
-      fill="currentColor"/>
+    <path d="m53 69-10 17h11l-5 11 19-24H56l7-11Z" fill="currentColor"/>
   `;
+
+  const sky = isDay ? sun : moon;
 
   switch (kind) {
     case 'clear':
-      return `<svg ${common}>${sun}</svg>`;
+      return `<svg ${common}>${sky}</svg>`;
     case 'partly':
-      return `<svg ${common}>${sun}<g transform="translate(14 17) scale(.78)">${cloud}</g></svg>`;
+      return `<svg ${common}>${sky}<g transform="translate(13 20) scale(.76)">${cloud}</g></svg>`;
     case 'cloudy':
       return `<svg ${common}>${cloud}</svg>`;
     case 'fog':
       return `<svg ${common}>${cloud}${fog}</svg>`;
     case 'drizzle':
-      return `<svg ${common}>${cloud}${rain}</svg>`;
+      return `<svg ${common}>${isDay ? sun : moon}<g transform="translate(12 20) scale(.76)">${cloud}</g>${rain}</svg>`;
     case 'rain':
-      return `<svg ${common}>${cloud}${rain}</svg>`;
+      return `<svg ${common}>${isDay ? sun : moon}<g transform="translate(12 20) scale(.76)">${cloud}</g>${rain}</svg>`;
     case 'snow':
-      return `<svg ${common}>${cloud}${snow}</svg>`;
+      return `<svg ${common}>${isDay ? sun : moon}<g transform="translate(12 20) scale(.76)">${cloud}</g>${snow}</svg>`;
     case 'storm':
       return `<svg ${common}>${cloud}${bolt}${rain}</svg>`;
     default:
-      return `<svg ${common}>${sun}${cloud}</svg>`;
+      return `<svg ${common}>${sky}<g transform="translate(13 20) scale(.76)">${cloud}</g></svg>`;
   }
 }
 
 function iconFor(code, size = '', isDay = true) {
-  switch (code) {
-    case 0: return isDay
-      ? weatherSvg('clear', size)
-      : `<svg class="weather-icon ${size}" viewBox="0 0 96 96" aria-hidden="true" focusable="false">
-          <path d="M57 12c-10 5-16 14-16 25 0 16 13 29 29 29 6 0 12-2 17-5-5 12-17 20-31 20-19 0-35-15-35-35S36 12 57 12Z"
-            fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
-        </svg>`;
-    case 1:
-    case 2: return weatherSvg('partly', size);
-    case 3: return weatherSvg('cloudy', size);
-    case 45:
-    case 48: return weatherSvg('fog', size);
-    case 51:
-    case 53:
-    case 55:
-    case 56:
-    case 57: return weatherSvg('drizzle', size);
-    case 61:
-    case 63:
-    case 65:
-    case 66:
-    case 67:
-    case 80:
-    case 81:
-    case 82: return weatherSvg('rain', size);
-    case 71:
-    case 73:
-    case 75:
-    case 77:
-    case 85:
-    case 86: return weatherSvg('snow', size);
-    case 95:
-    case 96:
-    case 99: return weatherSvg('storm', size);
-    default: return weatherSvg('partly', size);
+  const kind = (() => {
+    switch (code) {
+      case 0: return 'clear';
+      case 1:
+      case 2: return 'partly';
+      case 3: return 'cloudy';
+      case 45:
+      case 48: return 'fog';
+      case 51:
+      case 53:
+      case 55:
+      case 56:
+      case 57: return 'drizzle';
+      case 61:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+      case 80:
+      case 81:
+      case 82: return 'rain';
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+      case 85:
+      case 86: return 'snow';
+      case 95:
+      case 96:
+      case 99: return 'storm';
+      default: return 'partly';
+    }
+  })();
+
+  return weatherSvg(kind, size, isDay);
+}
+
+function setBrandIcon(isDay) {
+  const brandIcon = $('brandIcon');
+  if (brandIcon) {
+    brandIcon.innerHTML = isDay
+      ? weatherSvg('clear', '', true)
+      : weatherSvg('clear', '', false);
   }
+}
+
+function applyDayNight(isDay) {
+  document.body.dataset.day = isDay ? 'day' : 'night';
+  setBrandIcon(isDay);
 }
 
 async function fetchOpenMeteoCoordinates(latitude, longitude, locationName = 'Current Location') {
@@ -496,7 +506,7 @@ function render(data) {
     </article>
   `).join('');
 
-  document.body.dataset.day = current.day ? 'day' : 'night';
+  applyDayNight(current.day);
 }
 
 async function search(city, source = 'search') {
