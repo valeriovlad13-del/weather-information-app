@@ -43,9 +43,9 @@ body {
 }
 
 body[data-day="night"] {
-  --page-start: #669de1;
-  --page-mid: #4289d3;
-  --page-end: #2e6fbd;
+  --page-start: #547fbd;
+  --page-mid: #356da9;
+  --page-end: #28588f;
 }
 
 button,
