@@ -41,9 +41,14 @@
             />
             <button type="submit">Search</button>
             </form>
+            <button id="locationButton" class="location-button" type="button" aria-label="Use my current location">
+              <span class="location-button-icon" aria-hidden="true">⌖</span>
+              <span>Use my location</span>
+            </button>
             <div id="suggestions" class="suggestions" role="listbox" aria-label="Location suggestions"></div>
           </div>
           <p id="message" class="message" role="status" aria-live="polite"></p>
+          <p class="location-note">Location access is optional. Your browser location is more precise; IP location is used as an approximate fallback.</p>
         </section>
 
         <section id="weatherPanel" class="weather-panel" aria-live="polite">
