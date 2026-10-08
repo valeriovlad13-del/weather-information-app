@@ -479,6 +479,40 @@ async function initializeLocation() {
   }
 }
 
+let localTimeTimer = null;
+
+function updateLocalTime(timeZone) {
+  const target = $('localTime');
+  if (!target) return;
+
+  if (localTimeTimer) {
+    window.clearInterval(localTimeTimer);
+    localTimeTimer = null;
+  }
+
+  const update = () => {
+    if (!timeZone) {
+      target.textContent = 'Local time —';
+      return;
+    }
+
+    try {
+      const formatted = new Intl.DateTimeFormat(undefined, {
+        timeZone,
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }).format(new Date());
+      target.textContent = `Local time ${formatted}`;
+    } catch {
+      target.textContent = 'Local time —';
+    }
+  };
+
+  update();
+  localTimeTimer = window.setInterval(update, 60000);
+}
+
 function render(data) {
   state.data = data;
   const { location, current, forecast } = data;
@@ -494,7 +528,10 @@ function render(data) {
   $('wind').textContent = formatNumber(current.windSpeed);
   $('pressure').textContent = formatNumber(current.pressure);
   $('visibility').textContent = formatNumber(current.visibility);
-  $('timezone').textContent = location.timezone.replaceAll('_', ' ');
+  $('timezone').textContent = location.timezone
+    ? location.timezone.replaceAll('_', ' ')
+    : 'Local timezone';
+  updateLocalTime(location.timezone);
   $('unitToggle').textContent = unitSymbol();
 
   $('forecast').innerHTML = forecast.map((day, index) => `
