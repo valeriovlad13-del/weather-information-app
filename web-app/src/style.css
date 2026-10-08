@@ -132,6 +132,7 @@ h1 {
 
 .search-card,
 .weather-panel {
+  position: relative;
   border: 1px solid var(--glass-border);
   border-radius: 17px;
   background: var(--glass);
@@ -146,7 +147,7 @@ h1 {
 
 .suggestions {
   position: absolute;
-  z-index: 20;
+  z-index: 100;
   top: calc(100% + 7px);
   left: 0;
   right: 119px;
@@ -154,7 +155,7 @@ h1 {
   overflow: hidden;
   border: 1px solid var(--glass-border);
   border-radius: 12px;
-  background: rgba(52, 111, 183, 0.94);
+  background: rgba(52, 111, 183, 0.97);
   box-shadow: 0 14px 30px rgba(6, 55, 105, 0.22);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -208,6 +209,7 @@ h1 {
 }
 
 .search-card {
+  z-index: 50;
   margin-bottom: 14px;
   padding: 17px;
 }
@@ -275,6 +277,7 @@ h1 {
 }
 
 .weather-panel {
+  z-index: 1;
   padding: 18px;
 }
 
