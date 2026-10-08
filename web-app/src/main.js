@@ -92,8 +92,8 @@ function render(data) {
     <article class="forecast-card ${index === 0 ? 'today' : ''}">
       <span>${index === 0 ? 'Today' : formatDate(day.date)}</span>
       <strong>${day.icon}</strong>
-      <b>${formatNumber(day.maxTemperature)}°</b>
-      <small>${formatNumber(day.minTemperature)}° · ${day.precipitationProbability}% rain</small>
+      <b>${formatNumber(day.maxTemperature)}° / ${formatNumber(day.minTemperature)}°${unitSymbol()}</b>
+      <small>${day.precipitationProbability}% rain</small>
     </article>
   `).join('');
 
